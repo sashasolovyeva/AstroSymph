@@ -1,3 +1,4 @@
+import sys
 import numpy as np
 import matplotlib.pyplot as plt
 
@@ -86,13 +87,21 @@ def getEnergy( pos, vel, mass, G ):
 def add_object():
 	pass
 
+global globvar, globkey
+globvar = 0
+globkey = 0
+
 def on_press(event):
     print('press', event.key)
     sys.stdout.flush()
-    if event.key == 'x':
-        visible = xl.get_visible()
-        xl.set_visible(not visible)
-        fig.canvas.draw()
+    global globvar, globkey 
+    globvar = 1
+    globkey = event.key
+
+    # if event.key == 'x':
+    #     visible = xl.get_visible()
+    #     xl.set_visible(not visible)
+    #     fig.canvas.draw()
 
 def main():
 	""" N-body simulation """
@@ -140,6 +149,8 @@ def main():
 	grid = plt.GridSpec(3, 1, wspace=0.0, hspace=0.3)
 	ax1 = plt.subplot(grid[0:2,0])
 	# ax2 = plt.subplot(grid[2,0])
+
+	fig.canvas.mpl_connect('key_press_event', on_press)	
 	
 	# Simulation Main Loop
 	for i in range(Nt):
@@ -189,15 +200,36 @@ def main():
 			
 			plt.pause(0.001)
 
+			# # alt version: Tom adds new objects on new keypress
+			# def on_press(event):
+			#     print('press', event.key)
+			#     sys.stdout.flush()
+			#     if event.key == 'x':
+			#         visible = xl.get_visible()
+			#         xl.set_visible(not visible)
+			#         fig.canvas.draw()
+
+
 			# Tom is adding new objects on fixed time
 			# print(i)
-			if i % 50 == 0:
-				print(" i  % 10  == 0 ")
+			global globvar, globkey
+
+			if globvar == 1:
+				# global globvar
+				globvar = 0
+
+
+			# if i % 50 == 0:
+				# print(" i  % 10  == 0 ")
+				print("globvar == 1")
 				print("N= ", N+1)
 
 				# add an object
 				N += 1
-				mass_new = i/100 + np.mean(mass)
+				try:
+					mass_new = int(globkey)
+				except:
+					mass_new = i/100 + np.mean(mass)
 				pos_new = [np.sin(i/1000),0,0]
 				vel_new = [0,np.sin(i/1000),0]
 				acc_new = [0,0,np.sin(i/1000)]
