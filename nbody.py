@@ -1,5 +1,7 @@
 import numpy as np
 import matplotlib.pyplot as plt
+from numpy import interp
+import random
 
 """
 Tom Rice (~2023) has adapted Philip Mocz's code for a project with 
@@ -94,7 +96,37 @@ def on_press(event):
         xl.set_visible(not visible)
         fig.canvas.draw()
 
+class StarData:
+	def __init__ (self, freq, dur, note, numNotes):
+		# the data from the most recently played note(s)
+		self.freq = freq
+		self.mass = interp(self.freq, [27.5, 4186], [0.1, 10])
+		self.age = 0
+		self.yPos = interp(dur, [.5, 64], [-2, 2])
+		self.vel = interp(numNotes, [1, 3], [0, 1])
+		# interval between two notes; determined at a later stage, defaults to 0
+		self.xPos = 0;
+		# tempo; determined at a later stage via the list, defaults to 0
+		self.zPos = 0;
+
+pianoNotes_list = []
+
 def main():
+
+	currentSound = StarData(random.uniform(27.5, 4186), random.uniform(.5, 64), 7, random.randint(1, 3));
+	pianoNotes_list.append(currentSound)
+
+	# taking the interval between the current and the previous note
+	interval = abs(currentSound.freq - pianoNotes_list[pianoNotes_list.length - 2].freq)
+	currentSound.xPos = interp(interval, [0, 4158.5], [-2, 2])
+	# calculating the tempo and using it for the z position
+	# TO BE COMPLETED
+
+	print(currentSound.mass);
+	print(currentSound.age);
+	print(currentSound.yPos);
+	print(currentSound.vel);
+
 	""" N-body simulation """
 	
 	# Simulation parameters
@@ -220,7 +252,6 @@ def main():
 	plt.show()
 	    
 	return 0
-	
 
 
   
