@@ -1,6 +1,8 @@
 import sys
 import numpy as np
 import matplotlib.pyplot as plt
+import random
+from numpy import interp
 
 """
 Tom Rice (~2023) has adapted Philip Mocz's code for a project with 
@@ -16,9 +18,17 @@ Simulate orbits of stars interacting due to gravity
 Code calculates pairwise forces according to Newton's Law of Gravity
 """
 
+try:
+	plt.rcParams['keymap.save'].remove('s')
+	plt.rcParams['keymap.xscale'].remove('k')
+	plt.rcParams['keymap.yscale'].remove('l')
+	plt.rcParams['keymap.fullscreen'].remove('f')
+except ValueError:
+	pass
+
 def getAcc( pos, mass, G, softening ):
 	"""
-    Calculate the acceleration on each particle due to Newton's Law 
+	Calculate the acceleration on each particle due to Newton's Law 
 	pos  is an N x 3 matrix of positions
 	mass is an N x 1 vector of masses
 	G is Newton's Gravitational constant
@@ -91,17 +101,53 @@ global globvar, globkey
 globvar = 0
 globkey = 0
 
-def on_press(event):
-    print('press', event.key)
-    sys.stdout.flush()
-    global globvar, globkey 
-    globvar = 1
-    globkey = event.key
 
-    # if event.key == 'x':
-    #     visible = xl.get_visible()
-    #     xl.set_visible(not visible)
-    #     fig.canvas.draw()
+class StarData:
+	def __init__ (self, freq, dur, note, numNotes):
+		# the data from the most recently played note(s)
+		self.freq = freq
+		self.mass = interp(self.freq, [27.5, 4186], [0.1, 10])
+		self.age = 0
+		self.yPos = interp(dur, [.5, 64], [-2, 2])
+		self.vel = interp(numNotes, [1, 3], [0, 1])
+		# tempo; determined at a later stage via the list, defaults to 0
+		self.xPos = 0;
+		self.zPos = 0;
+
+global pianoNotes_list, currentSound
+pianoNotes_list = []
+currentSound = StarData(random.uniform(27.5, 4186), random.uniform(.5, 64), 7, random.randint(1, 3));
+
+def on_press(event):
+	print('press', event.key)
+	sys.stdout.flush()
+	global globvar, globkey 
+	global currentSound
+	globvar = 1
+	globkey = event.key
+
+	# if event.key == 'x':
+	#     visible = xl.get_visible()
+	#     xl.set_visible(not visible)
+	#     fig.canvas.draw()
+
+	currentSound = StarData(random.uniform(27.5, 4186), random.uniform(.5, 64), 7, random.randint(1, 3));
+	pianoNotes_list.append(currentSound)
+
+	# taking the interval between the current and the previous note
+	try:
+		interval = abs(currentSound.freq - pianoNotes_list[-2].freq)
+	except IndexError:
+		interval = 0
+
+	currentSound.xPos = interp(interval, [0, 4158.5], [-2, 2])
+	print("xPos:", currentSound.xPos)
+
+	# calculating the tempo and using it for the z position
+	# TO BE COMPLETED
+
+	print("Mass ", currentSound.mass)
+
 
 def main():
 	""" N-body simulation """
@@ -184,7 +230,7 @@ def main():
 			# xx = pos_save[:,0,max(i-50,0):i+1]
 			# yy = pos_save[:,1,max(i-50,0):i+1]
 			# plt.scatter(xx,yy,s=1,color=[.7,.7,1])
-			plt.scatter(pos[:,0],pos[:,1],s=mass,color='blue')
+			plt.scatter(pos[:,0],pos[:,1],s=mass*3,color='blue')
 			ax1.set(xlim=(-2, 2), ylim=(-2, 2))
 			ax1.set_aspect('equal', 'box')
 			ax1.set_xticks([-2,-1,0,1,2])
@@ -227,11 +273,11 @@ def main():
 				# add an object
 				N += 1
 				try:
-					mass_new = int(globkey)
+					mass_new = currentSound.mass
 				except:
 					mass_new = i/100 + np.mean(mass)
-				pos_new = [np.sin(i/1000),0,0]
-				vel_new = [0,np.sin(i/1000),0]
+				pos_new = [currentSound.xPos, currentSound.yPos, currentSound.zPos]
+				vel_new = [0, currentSound.vel, 0]
 				acc_new = [0,0,np.sin(i/1000)]
 
 				mass = np.append(mass, mass_new).reshape(N,1)
@@ -248,9 +294,8 @@ def main():
 	# ax2.legend(loc='upper right')
 	
 	# Save figure
-	plt.savefig('nbody.png',dpi=240)
 	plt.show()
-	    
+		
 	return 0
 	
 
