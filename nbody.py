@@ -3,6 +3,7 @@ import numpy as np
 import matplotlib.pyplot as plt
 import random
 from numpy import interp
+import keyboard
 
 """
 Tom Rice (~2023) has adapted Philip Mocz's code for a project with 
@@ -25,6 +26,21 @@ try:
 	plt.rcParams['keymap.fullscreen'].remove('f')
 except ValueError:
 	pass
+
+
+notes = [ 60, 62, 64, 65, 67, 69, 71, 72];
+keys = [ 65, 83, 68, 70, 71, 72, 74, 75, 76 ];
+
+pianoDict = {
+	"a": 261.63,
+	"s": 293.66,
+	"d": 329.63,
+	"f": 349.23,
+	"g": 392.00,
+	"h": 440.00,
+	"j": 493.88,
+	"k": 523.25
+}
 
 def getAcc( pos, mass, G, softening ):
 	"""
@@ -126,12 +142,18 @@ def on_press(event):
 	globvar = 1
 	globkey = event.key
 
+	frequency = random.uniform(27.5, 4186)
+
+	for key in pianoDict.keys():
+		if key == event.key:
+			frequency = pianoDict[key]
+
 	# if event.key == 'x':
 	#     visible = xl.get_visible()
 	#     xl.set_visible(not visible)
 	#     fig.canvas.draw()
 
-	currentSound = StarData(random.uniform(27.5, 4186), random.uniform(.5, 64), 7, random.randint(1, 3));
+	currentSound = StarData(frequency, random.uniform(.5, 64), 7, random.randint(1, 3));
 	pianoNotes_list.append(currentSound)
 
 	# taking the interval between the current and the previous note
@@ -230,7 +252,7 @@ def main():
 			# xx = pos_save[:,0,max(i-50,0):i+1]
 			# yy = pos_save[:,1,max(i-50,0):i+1]
 			# plt.scatter(xx,yy,s=1,color=[.7,.7,1])
-			plt.scatter(pos[:,0],pos[:,1],s=mass*3,color='blue')
+			plt.scatter(pos[:,0],pos[:,1],s=mass*10,color='blue')
 			ax1.set(xlim=(-2, 2), ylim=(-2, 2))
 			ax1.set_aspect('equal', 'box')
 			ax1.set_xticks([-2,-1,0,1,2])
